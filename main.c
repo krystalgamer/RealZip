@@ -23,9 +23,9 @@ void *buffer; //The buffer used to read files
 struct stat s;
 
 
-uint32_t GetFileSize(FILE* fp)
+uint64_t GetFileSize(FILE* fp)
 {
-    uint32_t tmp;
+    uint64_t tmp;
     fseeko64(fp, 0, SEEK_END);
     tmp = ftello64(fp);
     rewind(fp);
@@ -34,8 +34,8 @@ uint32_t GetFileSize(FILE* fp)
 
 void ZipTheFile(zipFile* zf, char *filename)
 {
-	int size_read = 1; //  Ammount of bytes read
-	ull_int flsize = 0;
+	uint64_t size_read = 1; //  Ammount of bytes read
+	uint64_t flsize = 0;
 	int written = 0;
 	FILE* fp;
 	
@@ -96,7 +96,7 @@ void ZipTheFile(zipFile* zf, char *filename)
 	
 }
 
-void RealZip(zipFile *zp, DIR **dir, char* filen)
+void RealZipDir(zipFile *zp, DIR **dir, char* filen)
 {	
 	struct dirent *ent;
 	DIR* tmp;
@@ -120,7 +120,7 @@ void RealZip(zipFile *zp, DIR **dir, char* filen)
     					tmp = opendir(name);
     					if(tmp != NULL)
     					{
-    						RealZip(zp, &tmp, name);//Recursive if finds another dir 
+    						RealZipDir(zp, &tmp, name);//Recursive if finds another dir 
     					}
     					
         				
@@ -150,7 +150,7 @@ int main (int argc, char *argv[])
 	char path[256];
 	
 	
-	if(argc != 3)
+	if(argc < 3)
 	{
 		puts("HELL NO");
 		exit(2);
@@ -164,18 +164,37 @@ int main (int argc, char *argv[])
 		exit(1);	
 	}
 	
-	dir = opendir(argv[2]);
-	if(dir == NULL)
+	for(int i = 2; i<argc;i++)
 	{
-		#ifdef DEBUG
-		
-		#else
-		printf("Error opening dir %s\n",argv[2]);
-		#endif
+		if( stat(argv[i],&s) == 0 )
+			{
+    				if( s.st_mode & S_IFDIR )
+    				{
+    					dir = opendir(argv[i]);
+    					if(dir != NULL)
+    					{
+    						strcpy(path, argv[i]);
+						RealZipDir(&zf, &dir, path);
+    						
+    					}
+    					else
+    					{
+						#ifdef DEBUG
+						#else
+						printf("Error opening dir %s\n",argv[2]);
+						#endif
+					}
+    				}
+    				else
+    				{
+    					
+    					ZipTheFile(&zf, argv[i]);//Zip that shit up
+    				}
+			}	
 	}
+	
 
-	strcpy(path, argv[2]);
-	RealZip(&zf, &dir, path);
+	
 	
 	closeZip(zf);
 	free(buffer);

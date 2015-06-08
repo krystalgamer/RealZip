@@ -1,6 +1,6 @@
 CC = gcc
 LIBS = -lz
-CFLAGS = -Wall 
+CFLAGS = -Wall -std=gnu99
 CFLAGS64 = -D_LARGEFILE64_SOURCE $(CFLAGS)
 #all: main.o
 #	$(CC) $(CFLAGS64) -o final main.o zip.o ioapi.o $(LIBS)
