@@ -21,6 +21,7 @@
 int buffer_size = WRITEBUFFERSIZE; // Buffer Size
 void *buffer; //The buffer used to read files
 struct stat s;
+int compress_level = Z_DEFAULT_COMPRESSION;// If user doesn't choose any compression level the default will be used
 
 
 uint64_t GetFileSize(FILE* fp)
@@ -54,7 +55,7 @@ void ZipTheFile(zipFile* zf, char *filename)
 	flsize = GetFileSize(fp);
 	
 	
-	zipOpenNewFileInZip(*zf, filename, NULL, NULL, 0, NULL,0, NULL, 0, Z_DEFAULT_COMPRESSION);
+	zipOpenNewFileInZip(*zf, filename, NULL, NULL, 0, NULL,0, NULL, (compress_level ? Z_DEFLATED : Z_NO_COMPRESSION), compress_level);
 	
 	
 	while(1)
@@ -156,15 +157,33 @@ int main (int argc, char *argv[])
 		exit(2);
 	}
 	
-	zf = openZip(argv[1]);
+	
 	
 	buffer = malloc(buffer_size);
 	if(buffer == NULL)
 	{
 		exit(1);	
 	}
+	if(argv[1][0] == '-' && argv[1][1] == 'c')
+	{
+		int tmp;
+		tmp = atoi(argv[2]);
+		if(tmp>=0 && tmp<= 9)
+		{
+		compress_level = tmp;
+		printf("Compression level set to: %d\n", compress_level);
+		}
+		zf = openZip(argv[3]);
 	
-	for(int i = 2; i<argc;i++)
+	}
+	else
+	{
+		zf = openZip(argv[1]);
+	}
+	
+	
+	
+	for(int i = (compress_level != Z_DEFAULT_COMPRESSION ? 4 : 2); i<argc;i++)//Need to change
 	{
 		if( stat(argv[i],&s) == 0 )
 			{
