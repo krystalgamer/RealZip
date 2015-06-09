@@ -183,7 +183,7 @@ int main (int argc, char *argv[])
 	
 	
 	
-	for(int i = (compress_level != Z_NO_COMPRESSION ? 4 : 2); i<argc;i++)//Need to change
+	for(int i = (compress_level != Z_DEFAULT_COMPRESSION ? 4 : 2); i<argc;i++)//Need to change
 	{
 		if( stat(argv[i],&s) == 0 )
 			{
