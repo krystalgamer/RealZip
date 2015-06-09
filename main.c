@@ -22,7 +22,7 @@ int buffer_size = WRITEBUFFERSIZE; // Buffer Size
 void *buffer; //The buffer used to read files
 struct stat s;
 int compress_level = Z_DEFAULT_COMPRESSION;// If user doesn't choose any compression level the default will be used
-
+FILE *logs;
 
 uint64_t GetFileSize(FILE* fp)
 {
@@ -31,6 +31,31 @@ uint64_t GetFileSize(FILE* fp)
     tmp = ftello64(fp);
     rewind(fp);
     return tmp;
+}
+
+void SetCompressLevel(char* level)
+{
+		int tmp;
+		tmp = atoi(level);
+		if(tmp>=0 && tmp<= 9)
+		{
+		compress_level = tmp;
+		if(logs != stdout){
+		fprintf(logs,"Compression level set to: %d\n", compress_level);
+		}
+		fprintf(stdout,"Compression level set to: %d\n", compress_level);
+		}
+		
+}
+
+void AllowLog(char* name)
+{
+	char coise[strlen(name)+4];
+	strcpy(coise, name);
+	strcat(coise,".txt");
+	logs = fopen(coise, "a");
+	
+
 }
 
 void ZipTheFile(zipFile* zf, char *filename)
@@ -50,7 +75,11 @@ void ZipTheFile(zipFile* zf, char *filename)
 	#ifdef DEBUG
 	
 	#else
-	printf("File %s opened successfuly.\n", filename);
+	if(logs != stdout){
+		
+		fprintf(logs,"File %s opened successfuly.\n", filename);
+		}
+	fprintf(stdout,"File %s opened successfuly.\n", filename);
 	#endif
 	flsize = GetFileSize(fp);
 	
@@ -82,7 +111,9 @@ void ZipTheFile(zipFile* zf, char *filename)
 		#ifdef DEBUG
 	
 	#else
-		printf("File %s successfully writen to zip file.\n", filename);
+		if(logs != stdout){
+		fprintf(logs,"File %s successfully writen to zip file.\n", filename);}
+		fprintf(stdout,"File %s successfully writen to zip file.\n", filename);
 		#endif
 	}
 	
@@ -146,9 +177,11 @@ void RealZipDir(zipFile *zp, DIR **dir, char* filen)
 
 int main (int argc, char *argv[])
 {
+	logs = stdout;
 	zipFile zf;
 	DIR *dir;
 	char path[256];
+	int last_pos = 0;
 	
 	
 	if(argc < 3)
@@ -164,26 +197,43 @@ int main (int argc, char *argv[])
 	{
 		exit(1);	
 	}
-	if(argv[1][0] == '-' && argv[1][1] == 'c')
+	int want_log = 0;
+	for(int i = 1; i<=3; i++)
 	{
-		int tmp;
-		tmp = atoi(argv[2]);
-		if(tmp>=0 && tmp<= 9)
+		
+		if(argv[i][0] == '-')
 		{
-		compress_level = tmp;
-		printf("Compression level set to: %d\n", compress_level);
+			switch(argv[i][1])
+			{
+				case 'c':
+					SetCompressLevel(argv[i+1]);
+					i++;
+					break;
+				case 'l':
+					want_log = 1;
+					
+					break;
+						
+			}
+		
 		}
-		zf = openZip(argv[3]);
-	
+		else
+		{
+			last_pos = i;
+			if(want_log)
+				{AllowLog(argv[i]);}
+			break;
+		}
+		
 	}
-	else
-	{
-		zf = openZip(argv[1]);
-	}
+	
+		zf = openZip(argv[last_pos]);
+		last_pos++;
 	
 	
 	
-	for(int i = (compress_level != Z_DEFAULT_COMPRESSION ? 4 : 2); i<argc;i++)//Need to change
+	
+	for(int i = last_pos; i<argc;i++)//Need to change
 	{
 		if( stat(argv[i],&s) == 0 )
 			{
@@ -200,7 +250,9 @@ int main (int argc, char *argv[])
     					{
 						#ifdef DEBUG
 						#else
-						printf("Error opening dir %s\n",argv[2]);
+							if(logs != stdout){
+						fprintf(logs,"Error opening dir %s\n",argv[2]);}
+						fprintf(stdout,"Error opening dir %s\n",argv[2]);
 						#endif
 					}
     				}
