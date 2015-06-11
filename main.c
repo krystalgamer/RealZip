@@ -7,6 +7,9 @@
 #include <inttypes.h>
 #include <string.h>
 #include <dirent.h>
+#define bool int
+#define true 1
+#define false 0
 
 // Use this for debugging
 //#define DEBUG
@@ -23,6 +26,7 @@ void *buffer; //The buffer used to read files
 struct stat s;
 int compress_level = Z_DEFAULT_COMPRESSION;// If user doesn't choose any compression level the default will be used
 FILE *logs;
+bool should_continue = true;
 
 uint64_t GetFileSize(FILE* fp)
 {
@@ -69,18 +73,26 @@ void ZipTheFile(zipFile* zf, char *filename)
 	
 	if(fp == NULL)
 	{
-		puts("ERROR");
-		exit(1);
-	}
-	#ifdef DEBUG
-	
-	#else
+		
 	if(logs != stdout){
 		
+		fprintf(logs,"Couldn't open file %s. %s", filename, (should_continue ? "Continuing..\n" : "Stopping.\n" ));
+		}
+	fprintf(stdout,"Couldn't open file %s. %s", filename, (should_continue ? "Continuing..\n" : "Stopping.\n" ));
+		if(should_continue == 0)
+		{
+			return;
+		}
+		
+	}
+	
+		#ifdef DEBUG
+		#else
+		if(logs != stdout){
 		fprintf(logs,"File %s opened successfuly.\n", filename);
 		}
-	fprintf(stdout,"File %s opened successfuly.\n", filename);
-	#endif
+		fprintf(stdout,"File %s opened successfuly.\n", filename);
+		#endif
 	flsize = GetFileSize(fp);
 	
 	
@@ -186,7 +198,8 @@ int main (int argc, char *argv[])
 	
 	if(argc < 3)
 	{
-		puts("HELL NO");
+		puts("Usage: ./realzip [flags] file.zip [files to zip]");
+		puts("Flags:\n \t -k Stop when a file can't be openned \n \t -c [0-9] Compress level\n\t -l To create a log file. \nThe log file name will be [zipfilename].txt. It will append if it already exists");
 		exit(2);
 	}
 	
@@ -198,7 +211,7 @@ int main (int argc, char *argv[])
 		exit(1);	
 	}
 	int want_log = 0;
-	for(int i = 1; i<=3; i++)
+	for(int i = 1; i<=5; i++)
 	{
 		
 		if(argv[i][0] == '-')
@@ -211,9 +224,10 @@ int main (int argc, char *argv[])
 					break;
 				case 'l':
 					want_log = 1;
-					
 					break;
-						
+				case 'k':
+					should_continue = false;
+					break;
 			}
 		
 		}
@@ -233,7 +247,7 @@ int main (int argc, char *argv[])
 	
 	
 	
-	for(int i = last_pos; i<argc;i++)//Need to change
+	for(int i = last_pos; i<argc;i++)
 	{
 		if( stat(argv[i],&s) == 0 )
 			{
@@ -261,6 +275,19 @@ int main (int argc, char *argv[])
     					
     					ZipTheFile(&zf, argv[i]);//Zip that shit up
     				}
+			}
+			else
+			{
+				if(logs != stdout)
+				{
+		
+					fprintf(logs,"Couldn't open file %s. %s", argv[i], (should_continue ? "Continuing..\n" : "Stopping.\n" ));
+				}
+				fprintf(stdout,"Couldn't open file %s. %s", argv[i], (should_continue ? "Continuing..\n" : "Stopping.\n" ));
+				if(should_continue == 0)
+				{
+					exit(1);
+				}
 			}	
 	}
 	
