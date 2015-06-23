@@ -59,14 +59,10 @@ void ZipTheFile(zipFile* zf, char *filename)
 		{
 			break;
 		}
-		if(logs != stdout){
-		fprintf(logs,"Writting %s to zip file...%" PRIu64 " %% \r", filename, ((written*100)/flsize));}
 		fprintf(stdout,"Writting %s to zip file...%" PRIu64 " %% \r", filename, ((written*100)/flsize));
 	
 	
 	}
-	if(logs != stdout){
-		fprintf(logs,"\n");}
 		fprintf(stdout,"\n");
 	
 	if(written == flsize)
