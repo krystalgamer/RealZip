@@ -6,6 +6,7 @@
 #include "zip.h"
 #include <inttypes.h>
 #include <string.h>
+#include <inttypes.h>
 #include <dirent.h>
 
 #define bool int

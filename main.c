@@ -8,7 +8,6 @@
 
 #define WRITEBUFFERSIZE (16384)
 
-
 int buffer_size = WRITEBUFFERSIZE; // Buffer Size
 void *buffer; //The buffer used to read files
 struct stat s;
@@ -134,7 +133,6 @@ void InitZip(char *argv[],int argc, int pos,uint8_t zipdir)
 int main (int argc, char *argv[])
 {
 	logs = stdout;
-
 	int want_log = 0;
 	uint8_t zip_all_dir = 0;
 	

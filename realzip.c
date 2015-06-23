@@ -12,7 +12,7 @@ void ZipTheFile(zipFile* zf, char *filename)
 {
 	uint64_t size_read = 1; //  Ammount of bytes read
 	uint64_t flsize = 0;
-	int written = 0;
+	uint64_t written = 0;
 	FILE* fp;
 	
 	fp = fopen64(filename, "rb");
@@ -31,7 +31,6 @@ void ZipTheFile(zipFile* zf, char *filename)
 		}
 		
 	}
-	
 		#ifdef DEBUG
 		#else
 		if(logs != stdout){
@@ -60,9 +59,16 @@ void ZipTheFile(zipFile* zf, char *filename)
 		{
 			break;
 		}
+		if(logs != stdout){
+		fprintf(logs,"Writting %s to zip file...%" PRIu64 " %% \r", filename, ((written*100)/flsize));}
+		fprintf(stdout,"Writting %s to zip file...%" PRIu64 " %% \r", filename, ((written*100)/flsize));
 	
 	
 	}
+	if(logs != stdout){
+		fprintf(logs,"\n");}
+		fprintf(stdout,"\n");
+	
 	if(written == flsize)
 	{
 		#ifdef DEBUG
